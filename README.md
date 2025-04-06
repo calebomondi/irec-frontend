@@ -1,2 +1,2 @@
-# IREC FRACTIONALIZATION FRONT END
+# IREC Fractionalization Front End Documentation
 
