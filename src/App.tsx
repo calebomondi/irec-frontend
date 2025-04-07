@@ -1,18 +1,38 @@
-//
+import Main from "./pages/main"
+
+import '@rainbow-me/rainbowkit/styles.css';
+
+import {
+  getDefaultConfig,
+  RainbowKitProvider,
+} from '@rainbow-me/rainbowkit';
+import { WagmiProvider } from 'wagmi';
+import {
+  sepolia,
+} from 'wagmi/chains';
+import {
+  QueryClientProvider,
+  QueryClient,
+} from "@tanstack/react-query";
+
+const config = getDefaultConfig({
+  appName: 'IREC',
+  projectId: import.meta.env.VITE_PROJECT_ID,
+  chains: [sepolia],
+});
+
+const queryClient = new QueryClient();
 
 function App() {
 
   return (
-    <>
-      <h1 className="text-2xl text-red-200">Welcome to IREC Fractionalization</h1>
-      <p>
-        This is a simple React application for fractionalizing IREC tokens.
-        It allows users to create and manage fractionalized tokens easily.
-      </p>
-      <p>
-        To get started, please connect your wallet and follow the instructions.
-      </p>
-    </>
+    <WagmiProvider config={config}>
+    <QueryClientProvider client={queryClient}>
+      <RainbowKitProvider>
+        <Main />
+      </RainbowKitProvider>
+    </QueryClientProvider>
+  </WagmiProvider>
   )
 }
 
