@@ -6,7 +6,9 @@ import { getWalletClient, getNFTOwner } from '../smartcontract/IREC';
 import { metaData } from '../smartcontract/metadata';
 import { IRCertificateCard } from '../components/IRCertificateCard';
 import Hero from '../components/hero';
-import Markets from '../components/markets';
+import TokenFractionalizationComponent from '../components/mintnft';
+import TransferHistory from '../components/ownerships';
+import TokenMarketplace from '../components/markets';
 
 export default function Main() {
   const { isConnected } = useAccount();
@@ -53,7 +55,9 @@ export default function Main() {
         isConnected ? (
           <>
             {activeTab === "view" && <IRCertificateCard certificateData={metaData} />}
-            {activeTab === "market" && <Markets />}
+            {activeTab === "market" && <TokenMarketplace />}
+            {activeTab === "fractions" && <TokenFractionalizationComponent />}
+            {activeTab === "owners" && <TransferHistory />}
           </>
         ) : (
           <Hero />

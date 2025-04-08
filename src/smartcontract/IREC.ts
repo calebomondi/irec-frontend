@@ -9,6 +9,13 @@ import {
     IREC_MARKETPLACE_CONTRACT_ADDRESS
 } from "./core";
 
+interface OwnershipTransfer {
+from: string;
+to: string;
+amount: bigint;
+timestampz: number;
+}
+
 //set up public cient
 function getPublicClient() {    
     return createPublicClient({
@@ -69,7 +76,7 @@ export async function getTokenMintedCount() {
     }
 }
 
-export async function mintNFTToken(to: string) {
+export async function mintNFTToken() {
     const { walletClient, address } = await getWalletClient();
     const publicClient = getPublicClient()
 
@@ -78,7 +85,7 @@ export async function mintNFTToken(to: string) {
             address: IREC_NFT_CONTRACT_ADDRESS as `0x${string}`,
             abi: IREC_NFT_ABI,
             functionName: "safeMint",
-            args: [to],
+            args: [address],
             account: address
         });
 
@@ -86,27 +93,26 @@ export async function mintNFTToken(to: string) {
 
         if(hash) {
             const tokenMintCount = await getTokenMintedCount()
-            return tokenMintCount - 1
+            return Number(tokenMintCount) - 1
         }
 
         return null
     } catch (error) {
-        console.error(`Failed To Mint NFT! ~ ${error}`);
+        console.log(`Failed To Mint NFT! ~ ${error}`);
         throw new Error(`Failed To Mint NFT!`);
     }
 }
 
 //IREC Token Contract
-export async function getBalanceOfUser() {
+export async function getBalanceOfUser(account: string) {
     const publicClient = getPublicClient()
-    const { address } = await getWalletClient()
 
     try {
         const balance = await publicClient.readContract({
             address: IREC_TOKEN_CONTRACT_ADDRESS as `0x${string}`,
             abi: IREC_TOKEN_ABI,
             functionName: 'balanceOf',
-            args:[address]
+            args:[account]
         });
     
         return balance as number;
@@ -133,7 +139,7 @@ export async function acquireOwnershipTokenId(tokenId: number) {
         return hash
 
     } catch (error) {
-        console.error(`Failed To Tranfer NFT Token Ownership! ~ ${error}`);
+        console.log(`Failed To Tranfer NFT Token Ownership! ~ ${error}`);
         throw new Error(`Failed To Tranfer NFT Token Ownership!`);
     }
 }
@@ -195,7 +201,7 @@ export async function tranferToMarketPlace() {
         return hash
 
     } catch (error) {
-        console.error(`Failed To Tranfer Tokens To Marketplace! ~ ${error}`);
+        console.log(`Failed To Tranfer Tokens To Marketplace! ~ ${error}`);
         throw new Error(`Failed To Tranfer NFT Token Ownership!`);
     }
 }
@@ -218,7 +224,7 @@ export async function setTokenPrice(price: number) {
         return hash
 
     } catch (error) {
-        console.error(`Failed To Set Token Price! ~ ${error}`);
+        console.log(`Failed To Set Token Price! ~ ${error}`);
         throw new Error(`Failed To Set Token Price!`);
     }
 }
@@ -252,7 +258,7 @@ export async function getTransfers() {
             args:[]
         });
     
-        return transfers as any[];
+        return transfers as OwnershipTransfer[];
     } catch (error) {
         throw new Error(`Cannot Get Transfers! ~ ${error}`);
     }
@@ -277,24 +283,33 @@ export async function getListings(listingId: number) {
 
 export async function purchaseFromReserve(amount: number) {
     const { walletClient, address } = await getWalletClient();
-    const publicClient = getPublicClient()
-
+    const publicClient = getPublicClient();
+    
     try {
+        // First, get the current sale price from the contract
+        const salePrice = await publicClient.readContract({
+            address: IREC_MARKETPLACE_CONTRACT_ADDRESS as `0x${string}`,
+            abi: IREC_MARKETPLACE_ABI,
+            functionName: "salePrice",
+        });
+        
+        // Calculate total cost (salePrice * amount)
+        const totalCost = BigInt(salePrice as bigint) * BigInt(amount);
+        
         const { request } = await publicClient.simulateContract({
             address: IREC_MARKETPLACE_CONTRACT_ADDRESS as `0x${string}`,
             abi: IREC_MARKETPLACE_ABI,
             functionName: "purchaseFromReserve",
             args: [amount],
             account: address,
-            value: parseEther((amount * 0.01).toString())
+            value: totalCost  // Use the correct calculated value
         });
 
-        const hash = await walletClient.writeContract(request)
-
-        return hash
+        const hash = await walletClient.writeContract(request);
+        return hash;
 
     } catch (error) {
-        console.error(`Failed To Buy Token! ~ ${error}`);
+        console.log(`Failed To Buy Token! ~ ${error}`);
         throw new Error(`Failed To Buy Token!`);
     }
 }
