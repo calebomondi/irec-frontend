@@ -1,4 +1,5 @@
 import Main from "./pages/main"
+import { Toaster } from 'react-hot-toast';
 
 import '@rainbow-me/rainbowkit/styles.css';
 
@@ -30,6 +31,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <RainbowKitProvider>
         <Main />
+        <Toaster />
       </RainbowKitProvider>
     </QueryClientProvider>
   </WagmiProvider>
